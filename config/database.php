@@ -14,6 +14,20 @@ class Database
 
         if (!empty($databaseUrl)) {
             $parts = parse_url($databaseUrl);
+
+            if ($parts === false || empty($parts['host'])) {
+                if (preg_match('#^postgres(?:ql)?://([^:]+):(.*)@([^:/]+)(?::(\d+))?/([^?]+)(?:\?(.*))?$#', $databaseUrl, $m)) {
+                    $parts = [
+                        'user' => $m[1],
+                        'pass' => $m[2],
+                        'host' => $m[3],
+                        'port' => !empty($m[4]) ? $m[4] : '5432',
+                        'path' => $m[5],
+                        'query' => $m[6] ?? ''
+                    ];
+                }
+            }
+
             $host = $parts['host'] ?? 'localhost';
             $port = (string)($parts['port'] ?? '5432');
             $dbName = ltrim($parts['path'] ?? 'postgres', '/');

@@ -1,0 +1,8 @@
+.env
+.git
+.gitignore
+vendor
+backend.zip
+*.zip
+.phpunit.result.cache
+tests

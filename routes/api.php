@@ -11,6 +11,19 @@ if (strlen($requestUri) > 1) {
 
 /*
 |--------------------------------------------------------------------------
+| Route d'accueil / Healthcheck
+|--------------------------------------------------------------------------
+*/
+
+if ($requestMethod === 'GET' && ($requestUri === '/' || $requestUri === '' || $requestUri === '/api')) {
+    Response::success('API TaxiGo opérationnelle.', [
+        'status' => 'online',
+        'version' => '1.0.0'
+    ]);
+}
+
+/*
+|--------------------------------------------------------------------------
 | Routes publiques — réservations client
 |--------------------------------------------------------------------------
 */

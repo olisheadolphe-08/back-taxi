@@ -2,166 +2,329 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>API TaxiGo - Documentation & Testeur Swagger</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23f59e0b'><path d='M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z'/></svg>">
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.18.2/swagger-ui.css">
+  <title>TaxiGo API - Swagger UI</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.18.2/swagger-ui.css">
   <style>
-    :root {
-      --primary: #f59e0b;
-      --primary-dark: #d97706;
-      --navy: #0f172a;
-      --navy-light: #1e293b;
-      --text-muted: #64748b;
-    }
+    /* ───── Reset & base ───── */
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; background: #fafafa; }
 
-    body {
-      margin: 0;
+    /* ───── Vraie topbar Swagger style ───── */
+    .swagger-topbar {
+      background: #1b1b1b;
       padding: 0;
-      background: #f8fafc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: stretch;
+      min-height: 60px;
     }
 
-    .top-bar {
-      background: var(--navy);
-      color: #ffffff;
-      padding: 14px 24px;
+    .swagger-topbar__wrapper {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 3px solid var(--primary);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 0 20px;
+      gap: 16px;
     }
 
-    .top-bar .brand {
+    .swagger-topbar__logo {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
-      color: #fff;
+      padding: 8px 0;
+      flex-shrink: 0;
     }
 
-    .top-bar .brand svg {
-      width: 32px;
-      height: 32px;
-      fill: var(--primary);
+    .swagger-topbar__logo svg {
+      width: 36px;
+      height: 36px;
     }
 
-    .top-bar .brand-text {
-      font-size: 1.25rem;
+    .swagger-topbar__logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .swagger-topbar__logo-text span:first-child {
+      color: #ffffff;
+      font-size: 1.05rem;
       font-weight: 700;
+      font-family: sans-serif;
       letter-spacing: -0.02em;
     }
 
-    .top-bar .brand-tag {
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--primary);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 9999px;
-      border: 1px solid rgba(245, 158, 11, 0.4);
+    .swagger-topbar__logo-text span:last-child {
+      color: #89bf04;
+      font-size: 0.7rem;
+      font-weight: 500;
+      font-family: sans-serif;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
 
-    .top-bar .links {
+    .swagger-topbar__url-form {
       display: flex;
-      gap: 12px;
       align-items: center;
+      flex: 1;
+      gap: 8px;
+      max-width: 780px;
     }
 
-    .top-bar .links a {
-      color: #cbd5e1;
-      text-decoration: none;
-      font-size: 0.875rem;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: all 0.2s ease;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .top-bar .links a:hover {
-      background: rgba(255, 255, 255, 0.15);
+    .swagger-topbar__url-input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.92rem;
+      border: 1px solid #555;
+      border-radius: 4px;
+      background: #3b3b3b;
       color: #ffffff;
+      outline: none;
+      font-family: monospace;
+      min-width: 0;
     }
 
-    .swagger-ui .topbar {
-      display: none !important;
+    .swagger-topbar__url-input:focus {
+      border-color: #89bf04;
+      box-shadow: 0 0 0 2px rgba(137, 191, 4, 0.25);
+    }
+
+    .swagger-topbar__url-input::placeholder { color: #888; }
+
+    .swagger-topbar__btn {
+      padding: 8px 20px;
+      background: #89bf04;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: sans-serif;
+      transition: background 0.15s;
+    }
+
+    .swagger-topbar__btn:hover { background: #7aaa03; }
+
+    .swagger-topbar__spacer { flex: 1; }
+
+    .swagger-topbar__links {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .swagger-topbar__links a {
+      color: #d0d0d0;
+      text-decoration: none;
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-family: sans-serif;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+
+    .swagger-topbar__links a:hover {
+      color: #fff;
+      border-color: #555;
+      background: rgba(255,255,255,0.07);
+    }
+
+    /* ───── Cache la topbar interne Swagger UI ───── */
+    .swagger-ui .topbar { display: none !important; }
+
+    /* ───── Corrections de style Swagger UI ───── */
+    .swagger-ui .wrapper {
+      max-width: 1460px;
+      padding: 0 20px;
     }
 
     .swagger-ui .info {
-      margin: 24px 0 20px 0;
+      margin: 30px 0 20px 0;
     }
+
+    .swagger-ui .info hgroup.main { margin: 0 0 20px 0; }
 
     .swagger-ui .info .title {
+      color: #3b4151;
       font-size: 2rem;
       font-weight: 700;
-      color: var(--navy);
     }
 
-    .swagger-ui .btn.authorize {
-      border-color: var(--primary);
-      color: var(--primary-dark);
-      border-radius: 6px;
+    .swagger-ui .info .title small.version-stamp {
+      background: #89bf04;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      vertical-align: middle;
+      border-radius: 57px;
       font-weight: 600;
     }
 
-    .swagger-ui .btn.authorize svg {
-      fill: var(--primary-dark);
+    .swagger-ui .info a { color: #4990e2; }
+
+    .swagger-ui .scheme-container {
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+      padding: 16px 20px;
+      margin: 0 0 20px 0;
+    }
+
+    /* Authorize button - style Swagger officiel */
+    .swagger-ui .btn.authorize {
+      border-color: #49cc90;
+      color: #49cc90;
+      border-radius: 4px;
+    }
+
+    .swagger-ui .btn.authorize svg { fill: #49cc90; }
+
+    .swagger-ui .btn.authorize:hover {
+      background: rgba(73,204,144,.1);
+    }
+
+    /* ───── Operations blocks ───── */
+    .swagger-ui .opblock-tag {
+      border-bottom: 1px solid rgba(59, 65, 81, .3);
+      font-family: sans-serif;
+    }
+
+    .swagger-ui .opblock-tag:hover { background: rgba(0,0,0,.02); }
+
+    .swagger-ui .opblock { border-radius: 4px; margin: 0 0 10px 0; }
+
+    .swagger-ui .opblock.opblock-get {
+      border-color: #61affe;
+      background: rgba(97,175,254,.1);
     }
 
     .swagger-ui .opblock.opblock-post {
-      background: rgba(73, 204, 144, 0.08);
       border-color: #49cc90;
-    }
-
-    .swagger-ui .opblock.opblock-get {
-      background: rgba(97, 175, 254, 0.08);
-      border-color: #61affe;
+      background: rgba(73,204,144,.1);
     }
 
     .swagger-ui .opblock.opblock-patch {
-      background: rgba(80, 227, 194, 0.08);
       border-color: #50e3c2;
+      background: rgba(80,227,194,.1);
     }
 
     .swagger-ui .opblock.opblock-delete {
-      background: rgba(249, 62, 62, 0.08);
       border-color: #f93e3e;
+      background: rgba(249,62,62,.1);
     }
 
-    .swagger-ui .wrapper {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 20px 40px 20px;
+    .swagger-ui .opblock.opblock-put {
+      border-color: #fca130;
+      background: rgba(252,161,48,.1);
     }
+
+    .swagger-ui .opblock .opblock-summary-method {
+      border-radius: 3px;
+      min-width: 80px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      font-family: sans-serif;
+    }
+
+    .swagger-ui .opblock .opblock-summary-description {
+      color: #3b4151;
+      font-family: sans-serif;
+      font-size: 0.9rem;
+    }
+
+    /* ───── Models section ───── */
+    .swagger-ui section.models {
+      border: 1px solid rgba(59, 65, 81, .3);
+      border-radius: 4px;
+    }
+
+    .swagger-ui section.models h4 {
+      color: #3b4151;
+      font-size: 1.1rem;
+      font-family: sans-serif;
+    }
+
+    /* ───── Scrollbar ───── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f0f0; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #aaa; }
   </style>
 </head>
 <body>
-  <header class="top-bar">
-    <a href="/" class="brand" title="Retour à l'accueil de l'API">
-      <svg viewBox="0 0 24 24">
-        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-      </svg>
-      <span class="brand-text">TaxiGo</span>
-      <span class="brand-tag">API Docs v1.0</span>
-    </a>
-    <div class="links">
-      <a href="/docs/openapi.json" target="_blank" download="openapi.json">📥 Spécification JSON</a>
-      <a href="/api" target="_blank">⚡ Statut API</a>
-    </div>
-  </header>
 
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Topbar style Swagger officiel avec URL explorer
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="swagger-topbar">
+    <div class="swagger-topbar__wrapper">
+
+      <!-- Logo -->
+      <a href="/docs" class="swagger-topbar__logo" title="TaxiGo API">
+        <!-- Swagger Petstore-style logo SVG -->
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="20" fill="#89bf04"/>
+          <path d="M28.92 16.01C28.72 15.42 28.16 15 27.5 15h-15c-.66 0-1.21.42-1.42 1.01L9 22v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h16v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM14.5 26c-.83 0-1.5-.67-1.5-1.5S13.67 23 14.5 23s1.5.67 1.5 1.5S15.33 26 14.5 26zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM13 21l1.5-4.5h11L27 21H13z" fill="white"/>
+        </svg>
+        <div class="swagger-topbar__logo-text">
+          <span>TaxiGo API</span>
+          <span>Swagger UI</span>
+        </div>
+      </a>
+
+      <!-- URL Explorer (comme le vrai Swagger UI) -->
+      <div class="swagger-topbar__url-form">
+        <input
+          id="spec-url-input"
+          class="swagger-topbar__url-input"
+          type="text"
+          value="/docs/openapi.json"
+          placeholder="URL de la spécification OpenAPI (JSON ou YAML)"
+          spellcheck="false"
+        >
+        <button class="swagger-topbar__btn" id="explore-btn" onclick="exploreUrl()">
+          Explorer
+        </button>
+      </div>
+
+      <div class="swagger-topbar__spacer"></div>
+
+      <!-- Liens utiles -->
+      <div class="swagger-topbar__links">
+        <a href="/docs/openapi.json" target="_blank" title="Télécharger la spécification JSON">
+          📄 openapi.json
+        </a>
+        <a href="/api" target="_blank" title="Vérifier le statut de l'API">
+          ⚡ Healthcheck
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Zone de rendu Swagger UI -->
   <div id="swagger-ui"></div>
 
   <script src="https://unpkg.com/swagger-ui-dist@5.18.2/swagger-ui-bundle.js"></script>
   <script src="https://unpkg.com/swagger-ui-dist@5.18.2/swagger-ui-standalone-preset.js"></script>
   <script>
-    window.onload = function() {
-      // Détermine l'URL de la spécification de manière dynamique (supporte /docs, /swagger, /api/docs)
-      const specUrl = window.location.origin + '/docs/openapi.json';
+    var ui;
 
-      window.ui = SwaggerUIBundle({
-        url: specUrl,
+    function initSwagger(specUrl) {
+      if (ui) {
+        // Recharge la spec sans recharger la page
+        ui.specActions.updateUrl(specUrl);
+        ui.specActions.download(specUrl);
+        return;
+      }
+
+      ui = SwaggerUIBundle({
+        url: specUrl || '/docs/openapi.json',
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
@@ -171,16 +334,52 @@
         plugins: [
           SwaggerUIBundle.plugins.DownloadUrl
         ],
-        layout: "BaseLayout",
+        layout: 'BaseLayout',
+
+        // UX
         persistAuthorization: true,
         displayRequestDuration: true,
         tryItOutEnabled: true,
         filter: true,
-        defaultModelsExpandDepth: 1,
-        defaultModelExpandDepth: 2,
-        docExpansion: "list"
+        showExtensions: true,
+        showCommonExtensions: true,
+        requestInterceptor: function(req) {
+          // Assure que le Content-Type JSON est bien positionné pour les POST/PATCH
+          return req;
+        },
+
+        // Expansion
+        docExpansion: 'list',          // 'none' | 'list' | 'full'
+        defaultModelsExpandDepth: 2,
+        defaultModelExpandDepth: 3,
+        defaultModelRendering: 'model',
+
+        // Validation syntaxique côté client
+        validatorUrl: null,            // désactive le badge validateur externe
       });
-    };
+
+      window.ui = ui;
+    }
+
+    function exploreUrl() {
+      var url = document.getElementById('spec-url-input').value.trim();
+      if (!url) return;
+      history.replaceState(null, '', '?url=' + encodeURIComponent(url));
+      initSwagger(url);
+    }
+
+    // Support de la touche Entrée dans le champ URL
+    document.getElementById('spec-url-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') exploreUrl();
+    });
+
+    // Lit l'URL depuis le querystring (?url=...) comme le vrai Swagger UI
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var specUrl = params.get('url') || '/docs/openapi.json';
+      document.getElementById('spec-url-input').value = specUrl;
+      window.addEventListener('load', function () { initSwagger(specUrl); });
+    })();
   </script>
 </body>
 </html>

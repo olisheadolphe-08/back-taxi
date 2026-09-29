@@ -1,0 +1,1732 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API TaxiGo",
+    "version": "1.0.0",
+    "description": "Documentation interactive OpenAPI / Swagger de l'API TaxiGo. Cette interface permet d'explorer, de tester et de valider l'ensemble des endpoints publics et administrateurs (réservations, authentification JWT, flotte de taxis, chauffeurs et notifications).",
+    "contact": {
+      "name": "Support TaxiGo",
+      "email": "contact@taxigo.fr"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Serveur actuel (relatif)"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Serveur local (développement)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Accueil",
+      "description": "Vérification de l'état du service et informations générales"
+    },
+    {
+      "name": "Réservations (Public)",
+      "description": "Endpoints publics pour créer et suivre une réservation"
+    },
+    {
+      "name": "Authentification",
+      "description": "Connexion et vérification de session administrateur"
+    },
+    {
+      "name": "Tableau de bord (Admin)",
+      "description": "Indicateurs et statistiques globales de l'activité"
+    },
+    {
+      "name": "Réservations (Admin)",
+      "description": "Consultation, recherche, filtrage et changement de statut des courses"
+    },
+    {
+      "name": "Taxis (Admin)",
+      "description": "Gestion de la flotte de taxis (CRUD, disponibilité)"
+    },
+    {
+      "name": "Chauffeurs (Admin)",
+      "description": "Gestion des chauffeurs (CRUD, disponibilité)"
+    },
+    {
+      "name": "Notifications (Admin)",
+      "description": "Alertes et suivi des nouvelles réservations"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Accueil"],
+        "summary": "Healthcheck de l'API",
+        "description": "Retourne le statut opérationnel de l'API et sa version.",
+        "responses": {
+          "200": {
+            "description": "API opérationnelle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "API TaxiGo opérationnelle.",
+                  "data": {
+                    "status": "online",
+                    "version": "1.0.0",
+                    "docs": "/docs"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "tags": ["Accueil"],
+        "summary": "Healthcheck préfixé /api",
+        "description": "Alias du healthcheck de l'API.",
+        "responses": {
+          "200": {
+            "description": "API opérationnelle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "API TaxiGo opérationnelle.",
+                  "data": {
+                    "status": "online",
+                    "version": "1.0.0",
+                    "docs": "/docs"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations": {
+      "post": {
+        "tags": ["Réservations (Public)"],
+        "summary": "Créer une réservation (Client)",
+        "description": "Enregistre une nouvelle demande de réservation, génère une référence unique (ex: RES-20261015-ABC123), crée une notification pour le back-office et envoie un email de confirmation si l'adresse email est renseignée.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationCreateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Réservation créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Réservation créée avec succès.",
+                  "data": {
+                    "id": 12,
+                    "reference": "RES-20261015-A4F98E",
+                    "statut": "en_attente"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Corps de la requête JSON invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Le corps de la requête doit être un JSON valide.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données fournies invalides (champs manquants ou format incorrect)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Les données fournies sont invalides.",
+                  "errors": {
+                    "nom_client": "Le nom doit contenir au moins 2 caractères.",
+                    "telephone_client": "Le numéro de téléphone est invalide.",
+                    "destination": "Le lieu de départ et la destination doivent être différents.",
+                    "date_heure": "La date de réservation doit être dans le futur."
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur interne lors de la création",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/lookup": {
+      "get": {
+        "tags": ["Réservations (Public)"],
+        "summary": "Suivre une réservation par référence",
+        "description": "Permet au client de consulter l'état, les détails de sa course, ainsi que les informations du taxi et chauffeur assignés s'ils existent.",
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "query",
+            "required": true,
+            "description": "Référence unique reçue lors de la réservation (ex: RES-20261015-A4F98E)",
+            "schema": {
+              "type": "string",
+              "example": "RES-20261015-A4F98E"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réservation trouvée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Réservation trouvée.",
+                  "data": {
+                    "id": 12,
+                    "reference": "RES-20261015-A4F98E",
+                    "nom_client": "Martin",
+                    "prenom_client": "Sophie",
+                    "telephone_client": "+33612345678",
+                    "email_client": "sophie.martin@example.com",
+                    "lieu_depart": "Gare de Lyon, Paris",
+                    "destination": "Aéroport Charles de Gaulle, Terminal 2E",
+                    "date_heure": "2026-10-15 14:30:00",
+                    "nombre_passagers": 2,
+                    "remarque": "2 grandes valises",
+                    "statut": "confirmee",
+                    "taxi_id": 1,
+                    "chauffeur_id": 1,
+                    "created_at": "2026-10-01 10:00:00",
+                    "immatriculation": "AB-123-CD",
+                    "taxi_marque": "Toyota",
+                    "taxi_modele": "Prius+",
+                    "chauffeur_nom": "Durand",
+                    "chauffeur_prenom": "Alex",
+                    "chauffeur_telephone": "+33698765432",
+                    "historique": [
+                      {
+                        "id": 20,
+                        "reservation_id": 12,
+                        "ancien_statut": null,
+                        "nouveau_statut": "en_attente",
+                        "commentaire": "Création de la réservation",
+                        "admin_id": null,
+                        "created_at": "2026-10-01 10:00:00",
+                        "admin_nom": null,
+                        "admin_prenom": null
+                      },
+                      {
+                        "id": 21,
+                        "reservation_id": 12,
+                        "ancien_statut": "en_attente",
+                        "nouveau_statut": "confirmee",
+                        "commentaire": "Taxi assigné pour votre prise en charge",
+                        "admin_id": 1,
+                        "created_at": "2026-10-01 10:15:00",
+                        "admin_nom": "Admin",
+                        "admin_prenom": "Super"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Aucune réservation trouvée pour cette référence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Aucune réservation trouvée pour cette référence.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Paramètre de référence manquant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "La référence de réservation est obligatoire.",
+                  "errors": {
+                    "reference": "Champ requis."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/lookup-par-telephone": {
+      "get": {
+        "tags": ["Réservations (Public)"],
+        "summary": "Recherche de secours par numéro de téléphone",
+        "description": "Permet au client ayant égaré sa référence de retrouver la liste de ses 10 dernières réservations (données non sensibles : référence, trajets, date et statut).",
+        "parameters": [
+          {
+            "name": "telephone",
+            "in": "query",
+            "required": true,
+            "description": "Numéro de téléphone utilisé lors de la réservation",
+            "schema": {
+              "type": "string",
+              "example": "+33612345678"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations associées",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Réservations trouvées.",
+                  "data": [
+                    {
+                      "reference": "RES-20261015-A4F98E",
+                      "lieu_depart": "Gare de Lyon, Paris",
+                      "destination": "Aéroport Charles de Gaulle",
+                      "date_heure": "2026-10-15 14:30:00",
+                      "statut": "confirmee",
+                      "created_at": "2026-10-01 10:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Numéro de téléphone requis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Le numéro de téléphone est obligatoire.",
+                  "errors": {
+                    "telephone": "Champ requis."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Connexion administrateur",
+        "description": "Authentifie un compte administrateur et renvoie un Bearer JWT token utilisable pour toutes les routes /api/admin/*.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie avec token JWT",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Connexion réussie.",
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "admin": {
+                      "id": 1,
+                      "nom": "Admin",
+                      "prenom": "Super",
+                      "email": "admin@taxigo.fr"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Identifiants incorrects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Identifiants incorrects.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Email ou mot de passe manquant",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Email et mot de passe sont obligatoires.",
+                  "errors": {
+                    "email": "Champ requis.",
+                    "password": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Authentification"],
+        "summary": "Vérifier la session administrateur",
+        "description": "Vérifie la validité du Bearer JWT et retourne l'identifiant et l'adresse email de l'administrateur connecté.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session valide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Session valide.",
+                  "data": {
+                    "id": 1,
+                    "email": "admin@taxigo.fr"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise ou expirée",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Session invalide ou expirée.",
+                  "errors": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/dashboard": {
+      "get": {
+        "tags": ["Tableau de bord (Admin)"],
+        "summary": "Statistiques globales",
+        "description": "Retourne le nombre total de réservations, le total du jour et la répartition par statut (en_attente, confirmee, annulee, terminee).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistiques du tableau de bord",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Statistiques du tableau de bord.",
+                  "data": {
+                    "total": 54,
+                    "aujourdhui": 6,
+                    "par_statut": {
+                      "en_attente": 4,
+                      "confirmee": 12,
+                      "annulee": 3,
+                      "terminee": 35
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/reservations": {
+      "get": {
+        "tags": ["Réservations (Admin)"],
+        "summary": "Lister les réservations (Paginé)",
+        "description": "Récupère la liste paginée des réservations avec options de recherche textuelle et filtrage par statut.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "statut",
+            "in": "query",
+            "required": false,
+            "description": "Filtrer par statut",
+            "schema": {
+              "type": "string",
+              "enum": ["en_attente", "confirmee", "annulee", "terminee"]
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "description": "Recherche par nom, prénom, téléphone ou référence",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Numéro de page (par défaut 1)",
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "description": "Éléments par page (1 à 100, défaut 20)",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste paginée des réservations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Liste des réservations.",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 12,
+                        "reference": "RES-20261015-A4F98E",
+                        "nom_client": "Martin",
+                        "prenom_client": "Sophie",
+                        "telephone_client": "+33612345678",
+                        "email_client": "sophie.martin@example.com",
+                        "lieu_depart": "Gare de Lyon, Paris",
+                        "destination": "Aéroport Charles de Gaulle",
+                        "date_heure": "2026-10-15 14:30:00",
+                        "nombre_passagers": 2,
+                        "remarque": "2 bagages",
+                        "statut": "confirmee",
+                        "taxi_id": 1,
+                        "chauffeur_id": 1,
+                        "created_at": "2026-10-01 10:00:00",
+                        "immatriculation": "AB-123-CD",
+                        "taxi_marque": "Toyota",
+                        "taxi_modele": "Prius+",
+                        "chauffeur_nom": "Durand",
+                        "chauffeur_prenom": "Alex"
+                      }
+                    ],
+                    "meta": {
+                      "page": 1,
+                      "per_page": 20,
+                      "total": 1,
+                      "total_pages": 1
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Statut de filtre invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/reservations/{id}": {
+      "get": {
+        "tags": ["Réservations (Admin)"],
+        "summary": "Détail d'une réservation",
+        "description": "Retourne les informations détaillées d'une réservation incluant son historique complet de changement de statuts, le taxi et le chauffeur affectés.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID numérique de la réservation",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Détail de la réservation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Réservation introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Réservation introuvable.",
+                  "errors": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/reservations/{id}/statut": {
+      "patch": {
+        "tags": ["Réservations (Admin)"],
+        "summary": "Modifier le statut d'une réservation",
+        "description": "Permet de passer une course à confirmee, annulee ou terminee, d'assigner un taxi et un chauffeur, d'ajouter un commentaire, et de vérifier qu'aucun conflit horaire n'existe pour le taxi choisi. Notifie le client par email du changement de statut.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la réservation",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationStatutUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Statut mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Réservation introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflit : ce taxi est déjà assigné à un autre trajet au même moment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Ce taxi est déjà réservé le 15/10/2026 à 14:30 pour un autre trajet. Choisissez un autre taxi.",
+                  "errors": {
+                    "taxi_id": "Taxi indisponible : trajet différent à la même date et heure."
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Statut invalide ou assignation taxi obligatoire pour confirmation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Un taxi doit être assigné pour confirmer la réservation.",
+                  "errors": {
+                    "taxi_id": "Champ requis pour confirmer."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/taxis": {
+      "get": {
+        "tags": ["Taxis (Admin)"],
+        "summary": "Lister les taxis",
+        "description": "Retourne la liste des taxis avec le chauffeur associé.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "statut",
+            "in": "query",
+            "required": false,
+            "description": "Filtrer par statut de disponibilité",
+            "schema": {
+              "type": "string",
+              "enum": ["disponible", "indisponible", "en_course"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des taxis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Statut de filtre invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Taxis (Admin)"],
+        "summary": "Ajouter un taxi",
+        "description": "Enregistre un nouveau véhicule dans la flotte.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxiInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Taxi créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données invalides ou immatriculation déjà existante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Un taxi avec cette immatriculation existe déjà.",
+                  "errors": {
+                    "immatriculation": "Immatriculation déjà utilisée."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/taxis/{id}": {
+      "patch": {
+        "tags": ["Taxis (Admin)"],
+        "summary": "Modifier un taxi",
+        "description": "Met à jour les informations, le statut ou le chauffeur assigné d'un taxi existant.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID du taxi",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaxiInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Taxi mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Taxi introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données invalides ou conflit d'immatriculation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Taxis (Admin)"],
+        "summary": "Supprimer un taxi",
+        "description": "Supprime un véhicule de la base.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID du taxi à supprimer",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Taxi supprimé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Taxi supprimé avec succès.",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Taxi introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/chauffeurs": {
+      "get": {
+        "tags": ["Chauffeurs (Admin)"],
+        "summary": "Lister les chauffeurs",
+        "description": "Retourne la liste des chauffeurs enregistrés.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "statut",
+            "in": "query",
+            "required": false,
+            "description": "Filtrer par statut de disponibilité",
+            "schema": {
+              "type": "string",
+              "enum": ["disponible", "indisponible", "en_course"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des chauffeurs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Statut de filtre invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Chauffeurs (Admin)"],
+        "summary": "Ajouter un chauffeur",
+        "description": "Enregistre un nouveau chauffeur avec son permis et numéro de contact.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChauffeurInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chauffeur créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données invalides ou numéro de permis déjà enregistré",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Un chauffeur avec ce numéro de permis existe déjà.",
+                  "errors": {
+                    "numero_permis": "Numéro de permis déjà utilisé."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/chauffeurs/{id}": {
+      "patch": {
+        "tags": ["Chauffeurs (Admin)"],
+        "summary": "Modifier un chauffeur",
+        "description": "Met à jour les coordonnées ou le statut d'un chauffeur.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID du chauffeur",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChauffeurInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chauffeur mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chauffeur introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données invalides",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Chauffeurs (Admin)"],
+        "summary": "Supprimer un chauffeur",
+        "description": "Supprime un chauffeur et détache automatiquement les taxis qui lui étaient affectés.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID du chauffeur à supprimer",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chauffeur supprimé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Chauffeur supprimé avec succès.",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Chauffeur introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/notifications": {
+      "get": {
+        "tags": ["Notifications (Admin)"],
+        "summary": "Lister les notifications récentes",
+        "description": "Retourne les 20 notifications les plus récentes pour le back-office avec la référence de réservation associée.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dernières notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Dernières notifications.",
+                  "data": [
+                    {
+                      "id": 1,
+                      "reservation_id": 12,
+                      "type": "nouvelle_reservation",
+                      "message": "Nouvelle demande de Sophie Martin : Gare de Lyon → CDG",
+                      "is_read": false,
+                      "created_at": "2026-10-01 10:00:00",
+                      "reservation_reference": "RES-20261015-A4F98E"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/notifications/non-lues": {
+      "get": {
+        "tags": ["Notifications (Admin)"],
+        "summary": "Compteur de notifications non lues",
+        "description": "Retourne le nombre exact de notifications en attente de lecture pour alimenter le badge dans l'interface d'administration.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nombre de notifications non lues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Nombre de notifications non lues.",
+                  "data": {
+                    "count": 3
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/notifications/lues": {
+      "patch": {
+        "tags": ["Notifications (Admin)"],
+        "summary": "Marquer toutes les notifications comme lues",
+        "description": "Passe l'état is_read à true sur l'ensemble des notifications du système.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Toutes les notifications marquées comme lues",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Toutes les notifications ont été marquées comme lues.",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/notifications/{id}/lue": {
+      "patch": {
+        "tags": ["Notifications (Admin)"],
+        "summary": "Marquer une notification spécifique comme lue",
+        "description": "Met à jour l'indicateur is_read d'une seule notification.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la notification",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification marquée comme lue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Notification marquée comme lue.",
+                  "data": null
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentification requise",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Notification introuvable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Authentification par JSON Web Token. Obtenez un token via /api/auth/login puis collez-le ici (sans le mot clé 'Bearer')."
+      }
+    },
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "example": "Opération réussie."
+          },
+          "data": {
+            "nullable": true,
+            "description": "Données renvoyées par l'opération"
+          }
+        },
+        "required": ["success", "message"]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string",
+            "example": "Une erreur est survenue."
+          },
+          "errors": {
+            "nullable": true,
+            "description": "Détails des erreurs ou validations",
+            "example": {
+              "champ": "Message d'erreur spécifique"
+            }
+          }
+        },
+        "required": ["success", "message"]
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "admin@taxigo.fr"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "AdminPassword123!"
+          }
+        }
+      },
+      "ReservationCreateInput": {
+        "type": "object",
+        "required": [
+          "nom_client",
+          "prenom_client",
+          "telephone_client",
+          "lieu_depart",
+          "destination",
+          "date_heure",
+          "nombre_passagers"
+        ],
+        "properties": {
+          "nom_client": {
+            "type": "string",
+            "minLength": 2,
+            "example": "Martin"
+          },
+          "prenom_client": {
+            "type": "string",
+            "minLength": 2,
+            "example": "Sophie"
+          },
+          "telephone_client": {
+            "type": "string",
+            "pattern": "^[0-9+\\s()-]{8,20}$",
+            "example": "+33612345678"
+          },
+          "email_client": {
+            "type": "string",
+            "format": "email",
+            "example": "sophie.martin@example.com"
+          },
+          "lieu_depart": {
+            "type": "string",
+            "example": "Gare de Lyon, Paris"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Aéroport Charles de Gaulle, Terminal 2"
+          },
+          "date_heure": {
+            "type": "string",
+            "description": "Date et heure au format YYYY-MM-DD HH:MM (doit être située dans le futur)",
+            "example": "2026-10-15 14:30"
+          },
+          "nombre_passagers": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8,
+            "example": 2
+          },
+          "remarque": {
+            "type": "string",
+            "example": "2 valises en soute"
+          }
+        }
+      },
+      "ReservationStatutUpdateInput": {
+        "type": "object",
+        "required": ["statut"],
+        "properties": {
+          "statut": {
+            "type": "string",
+            "enum": ["en_attente", "confirmee", "annulee", "terminee"],
+            "example": "confirmee"
+          },
+          "commentaire": {
+            "type": "string",
+            "example": "Chauffeur Alex affecté au trajet"
+          },
+          "taxi_id": {
+            "type": "integer",
+            "description": "Obligatoire si statut='confirmee' et aucun taxi n'est encore assigné",
+            "example": 1
+          },
+          "chauffeur_id": {
+            "type": "integer",
+            "description": "Optionnel lors de l'assignation",
+            "example": 1
+          }
+        }
+      },
+      "TaxiInput": {
+        "type": "object",
+        "required": ["immatriculation", "modele", "marque", "nombre_places"],
+        "properties": {
+          "immatriculation": {
+            "type": "string",
+            "example": "AB-123-CD"
+          },
+          "modele": {
+            "type": "string",
+            "example": "Prius+"
+          },
+          "marque": {
+            "type": "string",
+            "example": "Toyota"
+          },
+          "nombre_places": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "example": 4
+          },
+          "statut": {
+            "type": "string",
+            "enum": ["disponible", "indisponible", "en_course"],
+            "default": "disponible"
+          },
+          "chauffeur_id": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          }
+        }
+      },
+      "ChauffeurInput": {
+        "type": "object",
+        "required": ["nom", "prenom", "telephone", "numero_permis"],
+        "properties": {
+          "nom": {
+            "type": "string",
+            "example": "Durand"
+          },
+          "prenom": {
+            "type": "string",
+            "example": "Alex"
+          },
+          "telephone": {
+            "type": "string",
+            "pattern": "^[0-9+\\s()-]{8,20}$",
+            "example": "+33698765432"
+          },
+          "numero_permis": {
+            "type": "string",
+            "example": "PERM-98765432"
+          },
+          "statut": {
+            "type": "string",
+            "enum": ["disponible", "indisponible", "en_course"],
+            "default": "disponible"
+          }
+        }
+      }
+    }
+  }
+}

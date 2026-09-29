@@ -11,6 +11,26 @@ if (strlen($requestUri) > 1) {
 
 /*
 |--------------------------------------------------------------------------
+| Documentation Swagger / OpenAPI
+|--------------------------------------------------------------------------
+*/
+
+// GET /docs  → interface Swagger UI (HTML)
+if ($requestMethod === 'GET' && str_ends_with($requestUri, '/docs')) {
+    header('Content-Type: text/html; charset=UTF-8');
+    readfile(__DIR__ . '/../public/docs/index.html');
+    exit;
+}
+
+// GET /docs/openapi.json  → spécification OpenAPI brute (JSON)
+if ($requestMethod === 'GET' && str_ends_with($requestUri, '/docs/openapi.json')) {
+    header('Content-Type: application/json; charset=UTF-8');
+    readfile(__DIR__ . '/../public/docs/openapi.json');
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
 | Route d'accueil / Healthcheck
 |--------------------------------------------------------------------------
 */
@@ -18,7 +38,8 @@ if (strlen($requestUri) > 1) {
 if ($requestMethod === 'GET' && ($requestUri === '/' || $requestUri === '' || $requestUri === '/api')) {
     Response::success('API TaxiGo opérationnelle.', [
         'status' => 'online',
-        'version' => '1.0.0'
+        'version' => '1.0.0',
+        'docs' => '/docs'
     ]);
 }
 

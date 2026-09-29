@@ -67,8 +67,23 @@ if ($requestMethod === 'GET' && str_ends_with($requestUri, '/api/reservations/lo
 |--------------------------------------------------------------------------
 */
 
+// Debug temporaire — à supprimer après diagnostic
+if ($requestMethod === 'GET' && str_ends_with($requestUri, '/api/debug')) {
+    Response::success('Debug info', [
+        'method'  => $_SERVER['REQUEST_METHOD'] ?? 'N/A',
+        'uri'     => $_SERVER['REQUEST_URI'] ?? 'N/A',
+        'parsed'  => $requestUri,
+    ]);
+}
+
 if ($requestMethod === 'POST' && str_ends_with($requestUri, '/api/auth/login')) {
     (new AuthController(new Admin($db)))->login();
+}
+
+// Mauvaise méthode sur /api/auth/login → 405
+if ($requestMethod !== 'POST' && str_ends_with($requestUri, '/api/auth/login')) {
+    header('Allow: POST');
+    Response::error('Méthode non autorisée. Utilisez POST.', null, 405);
 }
 
 if ($requestMethod === 'GET' && str_ends_with($requestUri, '/api/auth/me')) {

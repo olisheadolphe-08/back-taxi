@@ -56,7 +56,9 @@
   "paths": {
     "/": {
       "get": {
-        "tags": ["Accueil"],
+        "tags": [
+          "Accueil"
+        ],
         "summary": "Healthcheck de l'API",
         "description": "Retourne le statut opérationnel de l'API et sa version.",
         "responses": {
@@ -84,7 +86,9 @@
     },
     "/api": {
       "get": {
-        "tags": ["Accueil"],
+        "tags": [
+          "Accueil"
+        ],
         "summary": "Healthcheck préfixé /api",
         "description": "Alias du healthcheck de l'API.",
         "responses": {
@@ -112,7 +116,9 @@
     },
     "/api/reservations": {
       "post": {
-        "tags": ["Réservations (Public)"],
+        "tags": [
+          "Réservations (Public)"
+        ],
         "summary": "Créer une réservation (Client)",
         "description": "Enregistre une nouvelle demande de réservation, génère une référence unique (ex: RES-20261015-ABC123), crée une notification pour le back-office et envoie un email de confirmation si l'adresse email est renseignée.",
         "requestBody": {
@@ -195,7 +201,9 @@
     },
     "/api/reservations/lookup": {
       "get": {
-        "tags": ["Réservations (Public)"],
+        "tags": [
+          "Réservations (Public)"
+        ],
         "summary": "Suivre une réservation par référence",
         "description": "Permet au client de consulter l'état, les détails de sa course, ainsi que les informations du taxi et chauffeur assignés s'ils existent.",
         "parameters": [
@@ -309,7 +317,9 @@
     },
     "/api/reservations/lookup-par-telephone": {
       "get": {
-        "tags": ["Réservations (Public)"],
+        "tags": [
+          "Réservations (Public)"
+        ],
         "summary": "Recherche de secours par numéro de téléphone",
         "description": "Permet au client ayant égaré sa référence de retrouver la liste de ses 10 dernières réservations (données non sensibles : référence, trajets, date et statut).",
         "parameters": [
@@ -371,7 +381,9 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": ["Authentification"],
+        "tags": [
+          "Authentification"
+        ],
         "summary": "Connexion administrateur",
         "description": "Authentifie un compte administrateur et renvoie un Bearer JWT token utilisable pour toutes les routes /api/admin/*.",
         "requestBody": {
@@ -456,7 +468,9 @@
     },
     "/api/auth/me": {
       "get": {
-        "tags": ["Authentification"],
+        "tags": [
+          "Authentification"
+        ],
         "summary": "Vérifier la session administrateur",
         "description": "Vérifie la validité du Bearer JWT et retourne l'identifiant et l'adresse email de l'administrateur connecté.",
         "security": [
@@ -503,7 +517,9 @@
     },
     "/api/admin/dashboard": {
       "get": {
-        "tags": ["Tableau de bord (Admin)"],
+        "tags": [
+          "Tableau de bord (Admin)"
+        ],
         "summary": "Statistiques globales",
         "description": "Retourne le nombre total de réservations, le total du jour et la répartition par statut (en_attente, confirmee, annulee, terminee).",
         "security": [
@@ -551,7 +567,9 @@
     },
     "/api/admin/reservations": {
       "get": {
-        "tags": ["Réservations (Admin)"],
+        "tags": [
+          "Réservations (Admin)"
+        ],
         "summary": "Lister les réservations (Paginé)",
         "description": "Récupère la liste paginée des réservations avec options de recherche textuelle et filtrage par statut.",
         "security": [
@@ -567,7 +585,12 @@
             "description": "Filtrer par statut",
             "schema": {
               "type": "string",
-              "enum": ["en_attente", "confirmee", "annulee", "terminee"]
+              "enum": [
+                "en_attente",
+                "confirmee",
+                "annulee",
+                "terminee"
+              ]
             }
           },
           {
@@ -675,7 +698,9 @@
     },
     "/api/admin/reservations/{id}": {
       "get": {
-        "tags": ["Réservations (Admin)"],
+        "tags": [
+          "Réservations (Admin)"
+        ],
         "summary": "Détail d'une réservation",
         "description": "Retourne les informations détaillées d'une réservation incluant son historique complet de changement de statuts, le taxi et le chauffeur affectés.",
         "security": [
@@ -735,7 +760,9 @@
     },
     "/api/admin/reservations/{id}/statut": {
       "patch": {
-        "tags": ["Réservations (Admin)"],
+        "tags": [
+          "Réservations (Admin)"
+        ],
         "summary": "Modifier le statut d'une réservation",
         "description": "Permet de passer une course à confirmee, annulee ou terminee, d'assigner un taxi et un chauffeur, d'ajouter un commentaire, et de vérifier qu'aucun conflit horaire n'existe pour le taxi choisi. Notifie le client par email du changement de statut.",
         "security": [
@@ -834,7 +861,9 @@
     },
     "/api/admin/taxis": {
       "get": {
-        "tags": ["Taxis (Admin)"],
+        "tags": [
+          "Taxis (Admin)"
+        ],
         "summary": "Lister les taxis",
         "description": "Retourne la liste des taxis avec le chauffeur associé.",
         "security": [
@@ -850,7 +879,11 @@
             "description": "Filtrer par statut de disponibilité",
             "schema": {
               "type": "string",
-              "enum": ["disponible", "indisponible", "en_course"]
+              "enum": [
+                "disponible",
+                "indisponible",
+                "en_course"
+              ]
             }
           }
         ],
@@ -888,7 +921,9 @@
         }
       },
       "post": {
-        "tags": ["Taxis (Admin)"],
+        "tags": [
+          "Taxis (Admin)"
+        ],
         "summary": "Ajouter un taxi",
         "description": "Enregistre un nouveau véhicule dans la flotte.",
         "security": [
@@ -949,7 +984,9 @@
     },
     "/api/admin/taxis/{id}": {
       "patch": {
-        "tags": ["Taxis (Admin)"],
+        "tags": [
+          "Taxis (Admin)"
+        ],
         "summary": "Modifier un taxi",
         "description": "Met à jour les informations, le statut ou le chauffeur assigné d'un taxi existant.",
         "security": [
@@ -1022,7 +1059,9 @@
         }
       },
       "delete": {
-        "tags": ["Taxis (Admin)"],
+        "tags": [
+          "Taxis (Admin)"
+        ],
         "summary": "Supprimer un taxi",
         "description": "Supprime un véhicule de la base.",
         "security": [
@@ -1082,7 +1121,9 @@
     },
     "/api/admin/chauffeurs": {
       "get": {
-        "tags": ["Chauffeurs (Admin)"],
+        "tags": [
+          "Chauffeurs (Admin)"
+        ],
         "summary": "Lister les chauffeurs",
         "description": "Retourne la liste des chauffeurs enregistrés.",
         "security": [
@@ -1098,7 +1139,11 @@
             "description": "Filtrer par statut de disponibilité",
             "schema": {
               "type": "string",
-              "enum": ["disponible", "indisponible", "en_course"]
+              "enum": [
+                "disponible",
+                "indisponible",
+                "en_course"
+              ]
             }
           }
         ],
@@ -1136,7 +1181,9 @@
         }
       },
       "post": {
-        "tags": ["Chauffeurs (Admin)"],
+        "tags": [
+          "Chauffeurs (Admin)"
+        ],
         "summary": "Ajouter un chauffeur",
         "description": "Enregistre un nouveau chauffeur avec son permis et numéro de contact.",
         "security": [
@@ -1197,7 +1244,9 @@
     },
     "/api/admin/chauffeurs/{id}": {
       "patch": {
-        "tags": ["Chauffeurs (Admin)"],
+        "tags": [
+          "Chauffeurs (Admin)"
+        ],
         "summary": "Modifier un chauffeur",
         "description": "Met à jour les coordonnées ou le statut d'un chauffeur.",
         "security": [
@@ -1270,7 +1319,9 @@
         }
       },
       "delete": {
-        "tags": ["Chauffeurs (Admin)"],
+        "tags": [
+          "Chauffeurs (Admin)"
+        ],
         "summary": "Supprimer un chauffeur",
         "description": "Supprime un chauffeur et détache automatiquement les taxis qui lui étaient affectés.",
         "security": [
@@ -1330,7 +1381,9 @@
     },
     "/api/admin/notifications": {
       "get": {
-        "tags": ["Notifications (Admin)"],
+        "tags": [
+          "Notifications (Admin)"
+        ],
         "summary": "Lister les notifications récentes",
         "description": "Retourne les 20 notifications les plus récentes pour le back-office avec la référence de réservation associée.",
         "security": [
@@ -1379,7 +1432,9 @@
     },
     "/api/admin/notifications/non-lues": {
       "get": {
-        "tags": ["Notifications (Admin)"],
+        "tags": [
+          "Notifications (Admin)"
+        ],
         "summary": "Compteur de notifications non lues",
         "description": "Retourne le nombre exact de notifications en attente de lecture pour alimenter le badge dans l'interface d'administration.",
         "security": [
@@ -1420,7 +1475,9 @@
     },
     "/api/admin/notifications/lues": {
       "patch": {
-        "tags": ["Notifications (Admin)"],
+        "tags": [
+          "Notifications (Admin)"
+        ],
         "summary": "Marquer toutes les notifications comme lues",
         "description": "Passe l'état is_read à true sur l'ensemble des notifications du système.",
         "security": [
@@ -1459,7 +1516,9 @@
     },
     "/api/admin/notifications/{id}/lue": {
       "patch": {
-        "tags": ["Notifications (Admin)"],
+        "tags": [
+          "Notifications (Admin)"
+        ],
         "summary": "Marquer une notification spécifique comme lue",
         "description": "Met à jour l'indicateur is_read d'une seule notification.",
         "security": [
@@ -1516,6 +1575,110 @@
           }
         }
       }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Authentification"
+        ],
+        "summary": "Inscription administrateur",
+        "description": "Crée un compte administrateur. Nécessite le code d'invitation défini par ADMIN_INVITE_CODE côté serveur (inscription désactivée s'il n'est pas défini). Renvoie directement un Bearer JWT.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Compte créé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                },
+                "example": {
+                  "success": true,
+                  "message": "Compte administrateur créé.",
+                  "data": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "admin": {
+                      "id": 2,
+                      "nom": "Rakoto",
+                      "prenom": "Jean",
+                      "email": "jean@taxigo.fr"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Le corps de la requête doit être un JSON valide.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Code d'invitation incorrect ou inscriptions désactivées",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Code d'invitation incorrect.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email déjà utilisé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Un compte existe déjà avec cet email.",
+                  "errors": null
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Données invalides",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "success": false,
+                  "message": "Données invalides.",
+                  "errors": null
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1544,7 +1707,10 @@
             "description": "Données renvoyées par l'opération"
           }
         },
-        "required": ["success", "message"]
+        "required": [
+          "success",
+          "message"
+        ]
       },
       "ErrorResponse": {
         "type": "object",
@@ -1565,11 +1731,17 @@
             }
           }
         },
-        "required": ["success", "message"]
+        "required": [
+          "success",
+          "message"
+        ]
       },
       "LoginInput": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -1642,11 +1814,18 @@
       },
       "ReservationStatutUpdateInput": {
         "type": "object",
-        "required": ["statut"],
+        "required": [
+          "statut"
+        ],
         "properties": {
           "statut": {
             "type": "string",
-            "enum": ["en_attente", "confirmee", "annulee", "terminee"],
+            "enum": [
+              "en_attente",
+              "confirmee",
+              "annulee",
+              "terminee"
+            ],
             "example": "confirmee"
           },
           "commentaire": {
@@ -1667,7 +1846,12 @@
       },
       "TaxiInput": {
         "type": "object",
-        "required": ["immatriculation", "modele", "marque", "nombre_places"],
+        "required": [
+          "immatriculation",
+          "modele",
+          "marque",
+          "nombre_places"
+        ],
         "properties": {
           "immatriculation": {
             "type": "string",
@@ -1689,7 +1873,11 @@
           },
           "statut": {
             "type": "string",
-            "enum": ["disponible", "indisponible", "en_course"],
+            "enum": [
+              "disponible",
+              "indisponible",
+              "en_course"
+            ],
             "default": "disponible"
           },
           "chauffeur_id": {
@@ -1701,7 +1889,12 @@
       },
       "ChauffeurInput": {
         "type": "object",
-        "required": ["nom", "prenom", "telephone", "numero_permis"],
+        "required": [
+          "nom",
+          "prenom",
+          "telephone",
+          "numero_permis"
+        ],
         "properties": {
           "nom": {
             "type": "string",
@@ -1722,8 +1915,51 @@
           },
           "statut": {
             "type": "string",
-            "enum": ["disponible", "indisponible", "en_course"],
+            "enum": [
+              "disponible",
+              "indisponible",
+              "en_course"
+            ],
             "default": "disponible"
+          }
+        }
+      },
+      "RegisterInput": {
+        "type": "object",
+        "required": [
+          "nom",
+          "prenom",
+          "email",
+          "password",
+          "invite_code"
+        ],
+        "properties": {
+          "nom": {
+            "type": "string",
+            "example": "Rakoto"
+          },
+          "prenom": {
+            "type": "string",
+            "example": "Jean"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "jean@taxigo.fr"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 8
+          },
+          "password_confirmation": {
+            "type": "string",
+            "format": "password",
+            "description": "Optionnel ; s'il est fourni, doit être identique à password."
+          },
+          "invite_code": {
+            "type": "string",
+            "description": "Code d'invitation (ADMIN_INVITE_CODE)."
           }
         }
       }

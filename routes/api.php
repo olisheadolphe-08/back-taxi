@@ -86,6 +86,16 @@ if ($requestMethod !== 'POST' && str_ends_with($requestUri, '/api/auth/login')) 
     Response::error('Méthode non autorisée. Utilisez POST.', null, 405);
 }
 
+if ($requestMethod === 'POST' && str_ends_with($requestUri, '/api/auth/register')) {
+    (new AuthController(new Admin($db)))->register();
+}
+
+// Mauvaise méthode sur /api/auth/register → 405
+if ($requestMethod !== 'POST' && str_ends_with($requestUri, '/api/auth/register')) {
+    header('Allow: POST');
+    Response::error('Méthode non autorisée. Utilisez POST.', null, 405);
+}
+
 if ($requestMethod === 'GET' && str_ends_with($requestUri, '/api/auth/me')) {
     $payload = AuthMiddleware::handle();
     (new AuthController(new Admin($db)))->me($payload);
